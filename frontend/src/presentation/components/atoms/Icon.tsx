@@ -14,7 +14,7 @@ export interface IconProps {
 
 export const Icon: React.FC<IconProps> = ({
   name,
-  size = 'medium',
+  size = 'small',
   color,
   spin = false,
   pulse = false,

@@ -100,14 +100,13 @@ describe('Tag Component', () => {
       const { container } = render(<Tag icon="user">User</Tag>);
       const tag = container.querySelector('.tag');
       const icon = tag?.querySelector('.icon');
-      const textNodes = Array.from(tag?.childNodes || []).filter(node => 
-        node.nodeType === Node.TEXT_NODE && node.textContent?.trim()
-      );
       
       expect(icon).toBeInTheDocument();
-      expect(textNodes.length).toBeGreaterThan(0);
+      expect(tag).toHaveTextContent('User');
       // Icon should be the first child element
       expect(tag?.firstElementChild).toBe(icon);
+      // Tag should have both icon and text content
+      expect(tag?.children.length).toBeGreaterThan(1);
     });
   });
 

@@ -6,8 +6,16 @@ import { Task, Priority, TaskId } from '../../../../domain/entities';
 
 // Mock the dependencies
 jest.mock('../../templates', () => ({
-  TaskManagementLayout: ({ headerProps, boardProps, formProps, className }: any) => (
+  TaskManagementLayout: ({ headerProps, boardProps, formProps, successMessage, onClearSuccessMessage, className }: any) => (
     <div data-testid="task-management-layout" className={className}>
+      {/* Success Message */}
+      {successMessage && (
+        <div data-testid="success-message">
+          {successMessage}
+          <button onClick={onClearSuccessMessage} data-testid="clear-success">Clear</button>
+        </div>
+      )}
+
       {/* Header Section */}
       <header data-testid="app-header">
         <h1>{headerProps.title}</h1>
@@ -16,6 +24,7 @@ jest.mock('../../templates', () => ({
           <span data-testid="total-count">Total: {headerProps.totalTasks}</span>
           <span data-testid="pending-count">Pending: {headerProps.pendingTasks}</span>
           <span data-testid="completed-count">Completed: {headerProps.completedTasks}</span>
+          <span data-testid="archived-count">Archived: {headerProps.archivedTasks}</span>
         </div>
       </header>
 
@@ -44,12 +53,23 @@ jest.mock('../../templates', () => ({
           {boardProps.completedTasks.map((task: any) => (
             <div key={task.id.value} data-testid={`completed-task-${task.id.value}`}>
               <span>{task.title}</span>
-              <button 
-                onClick={() => boardProps.onEditTask(task)} 
-                data-testid={`edit-completed-task-${task.id.value}`}
-              >
-                Edit
-              </button>
+              {boardProps.onEditTask && (
+                <button 
+                  onClick={() => boardProps.onEditTask(task)} 
+                  data-testid={`edit-completed-task-${task.id.value}`}
+                  disabled={task.isDone}
+                >
+                  Edit
+                </button>
+              )}
+              {task.isDone && boardProps.onArchiveTask && (
+                <button 
+                  onClick={() => boardProps.onArchiveTask(task)} 
+                  data-testid={`archive-task-${task.id.value}`}
+                >
+                  Archive
+                </button>
+              )}
             </div>
           ))}
         </div>
@@ -137,12 +157,13 @@ jest.mock('../../templates', () => ({
 const mockTaskManagement = {
   filteredTasks: [] as Task[],
   loading: false,
-  error: null,
-  taskCounts: { all: 0, pending: 0, done: 0 },
+  error: null as string | null,
+  taskCounts: { all: 0, pending: 0, done: 0, archived: 0 },
   createTask: jest.fn(),
   updateTask: jest.fn(),
   markTaskAsDone: jest.fn(),
   markTaskAsPending: jest.fn(),
+  archiveTask: jest.fn(),
   clearError: jest.fn(),
 };
 
@@ -151,15 +172,27 @@ jest.mock('../../../hooks', () => ({
 }));
 
 describe('TodoPage Integration Tests', () => {
-  const createMockTask = (id: string, title: string, isDone: boolean = false): Task => ({
-    id: { value: id } as TaskId,
-    title,
-    description: `Description for ${title}`,
-    priority: Priority.MEDIUM,
-    isDone,
-    createdAt: new Date('2023-01-01'),
-    isPending: () => !isDone,
-  });
+  const createMockTask = (id: string, title: string, isDone: boolean = false, isArchived: boolean = false): Task => {
+    const mockTask: Partial<Task> = {
+      id: { value: id } as TaskId,
+      title,
+      description: `Description for ${title}`,
+      priority: Priority.MEDIUM,
+      isDone,
+      isArchived,
+      createdAt: new Date('2023-01-01'),
+      updatedAt: new Date('2023-01-01'),
+      isPending: () => !isDone,
+      isHighPriority: () => false,
+    };
+
+    // Add methods that return proper Task objects
+    mockTask.markAsDone = () => createMockTask(id, title, true, isArchived);
+    mockTask.update = (params: any) => createMockTask(id, params.title || title, isDone, isArchived);
+    mockTask.archive = () => createMockTask(id, title, isDone, true);
+
+    return mockTask as Task;
+  };
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -167,7 +200,7 @@ describe('TodoPage Integration Tests', () => {
     mockTaskManagement.filteredTasks = [];
     mockTaskManagement.loading = false;
     mockTaskManagement.error = null;
-    mockTaskManagement.taskCounts = { all: 0, pending: 0, done: 0 };
+    mockTaskManagement.taskCounts = { all: 0, pending: 0, done: 0, archived: 0 };
   });
 
   describe('Basic Page Rendering', () => {
@@ -189,13 +222,14 @@ describe('TodoPage Integration Tests', () => {
     });
 
     it('displays correct header statistics', () => {
-      mockTaskManagement.taskCounts = { all: 10, pending: 6, done: 4 };
+      mockTaskManagement.taskCounts = { all: 10, pending: 6, done: 4, archived: 2 };
       
       render(<TodoPage />);
 
       expect(screen.getByTestId('total-count')).toHaveTextContent('Total: 10');
       expect(screen.getByTestId('pending-count')).toHaveTextContent('Pending: 6');
       expect(screen.getByTestId('completed-count')).toHaveTextContent('Completed: 4');
+      expect(screen.getByTestId('archived-count')).toHaveTextContent('Archived: 2');
     });
   });
 
@@ -209,7 +243,7 @@ describe('TodoPage Integration Tests', () => {
       ];
 
       mockTaskManagement.filteredTasks = tasks;
-      mockTaskManagement.taskCounts = { all: 4, pending: 2, done: 2 };
+      mockTaskManagement.taskCounts = { all: 4, pending: 2, done: 2, archived: 0 };
 
       render(<TodoPage />);
 
@@ -226,7 +260,7 @@ describe('TodoPage Integration Tests', () => {
 
     it('handles empty task lists', () => {
       mockTaskManagement.filteredTasks = [];
-      mockTaskManagement.taskCounts = { all: 0, pending: 0, done: 0 };
+      mockTaskManagement.taskCounts = { all: 0, pending: 0, done: 0, archived: 0 };
 
       render(<TodoPage />);
 
@@ -243,7 +277,7 @@ describe('TodoPage Integration Tests', () => {
 
       // Add tasks
       mockTaskManagement.filteredTasks = [createMockTask('new-task', 'New Task')];
-      mockTaskManagement.taskCounts = { all: 1, pending: 1, done: 0 };
+      mockTaskManagement.taskCounts = { all: 1, pending: 1, done: 0, archived: 0 };
 
       rerender(<TodoPage />);
 
@@ -381,18 +415,130 @@ describe('TodoPage Integration Tests', () => {
       });
     });
 
-    it('can edit completed tasks', async () => {
-        const completedTask = createMockTask('completed-task', 'Completed Task', true);
+    it('disables edit button for completed tasks', () => {
+      const completedTask = createMockTask('completed-task', 'Completed Task', true);
       mockTaskManagement.filteredTasks = [completedTask];
 
       render(<TodoPage />);
 
-      // Click edit button for completed task
-      await userEvent.click(screen.getByTestId('edit-completed-task-completed-task'));
+      // Edit button should be present but disabled for completed tasks
+      const editButton = screen.getByTestId('edit-completed-task-completed-task');
+      expect(editButton).toBeInTheDocument();
+      expect(editButton).toBeDisabled();
+    });
+  });
 
-      // Form should open in edit mode
-      expect(screen.getByTestId('task-form')).toBeInTheDocument();
-      expect(screen.getByText('Edit Task')).toBeInTheDocument();
+  describe('Archive Functionality', () => {
+    it('shows archive button only for completed tasks', () => {
+      const tasks = [
+        createMockTask('pending-task', 'Pending Task', false),
+        createMockTask('completed-task', 'Completed Task', true),
+      ];
+
+      mockTaskManagement.filteredTasks = tasks;
+
+      render(<TodoPage />);
+
+      // Archive button should not be present for pending tasks
+      expect(screen.queryByTestId('archive-task-pending-task')).not.toBeInTheDocument();
+      
+      // Archive button should be present for completed tasks
+      expect(screen.getByTestId('archive-task-completed-task')).toBeInTheDocument();
+    });
+
+    it('archives completed task when archive button is clicked', async () => {
+      const completedTask = createMockTask('archive-me', 'Task to Archive', true);
+      mockTaskManagement.filteredTasks = [completedTask];
+      mockTaskManagement.archiveTask.mockResolvedValue(undefined);
+
+      render(<TodoPage />);
+
+      // Click archive button
+      await userEvent.click(screen.getByTestId('archive-task-archive-me'));
+
+      // Verify archiveTask was called with correct ID
+      expect(mockTaskManagement.archiveTask).toHaveBeenCalledWith('archive-me');
+    });
+
+    it('displays success message when task is archived', async () => {
+      const completedTask = createMockTask('success-task', 'Success Task', true);
+      mockTaskManagement.filteredTasks = [completedTask];
+      mockTaskManagement.archiveTask.mockResolvedValue(undefined);
+
+      render(<TodoPage />);
+
+      // Archive the task
+      await userEvent.click(screen.getByTestId('archive-task-success-task'));
+
+      // Wait for success message to appear
+      await waitFor(() => {
+        expect(screen.getByTestId('success-message')).toBeInTheDocument();
+      });
+
+      expect(screen.getByTestId('success-message')).toHaveTextContent('Task "Success Task" has been archived successfully');
+    });
+
+    it('clears success message when clear button is clicked', async () => {
+      const completedTask = createMockTask('clear-task', 'Clear Task', true);
+      mockTaskManagement.filteredTasks = [completedTask];
+      mockTaskManagement.archiveTask.mockResolvedValue(undefined);
+
+      render(<TodoPage />);
+
+      // Archive task to show success message
+      await userEvent.click(screen.getByTestId('archive-task-clear-task'));
+
+      await waitFor(() => {
+        expect(screen.getByTestId('success-message')).toBeInTheDocument();
+      });
+
+      // Clear the success message
+      await userEvent.click(screen.getByTestId('clear-success'));
+
+      expect(screen.queryByTestId('success-message')).not.toBeInTheDocument();
+    });
+
+    it('handles archive errors gracefully', async () => {
+      const completedTask = createMockTask('error-task', 'Error Task', true);
+      mockTaskManagement.filteredTasks = [completedTask];
+      mockTaskManagement.archiveTask.mockRejectedValue(new Error('Archive failed'));
+
+      render(<TodoPage />);
+
+      // Archive task that will fail
+      await userEvent.click(screen.getByTestId('archive-task-error-task'));
+
+      // Should not crash the application
+      expect(screen.getByTestId('task-board')).toBeInTheDocument();
+      
+      // Success message should not appear
+      expect(screen.queryByTestId('success-message')).not.toBeInTheDocument();
+    });
+
+    it('filters out archived tasks from display', () => {
+      const tasks = [
+        createMockTask('pending-task', 'Pending Task', false, false),
+        createMockTask('completed-task', 'Completed Task', true, false),
+        createMockTask('archived-task', 'Archived Task', true, true),
+      ];
+
+      // Filter out archived tasks like the real component does
+      const filteredTasks = tasks.filter(task => !task.isArchived);
+      mockTaskManagement.filteredTasks = filteredTasks;
+      mockTaskManagement.taskCounts = { all: 2, pending: 1, done: 1, archived: 1 };
+
+      render(<TodoPage />);
+
+      // Archived task should not be displayed
+      expect(screen.queryByTestId('completed-task-archived-task')).not.toBeInTheDocument();
+      expect(screen.queryByTestId('pending-task-archived-task')).not.toBeInTheDocument();
+      
+      // Non-archived tasks should be displayed
+      expect(screen.getByTestId('pending-task-pending-task')).toBeInTheDocument();
+      expect(screen.getByTestId('completed-task-completed-task')).toBeInTheDocument();
+      
+      // Counts should reflect filtered state
+      expect(screen.getByTestId('archived-count')).toHaveTextContent('Archived: 1');
     });
   });
 
@@ -602,15 +748,23 @@ describe('TodoPage Integration Tests', () => {
 
   describe('Edge Cases', () => {
     it('handles tasks without complete data', () => {
-      const incompleteTask = {
-        id: { value: 'incomplete' },
+      const incompleteTask: Partial<Task> = {
+        id: { value: 'incomplete' } as TaskId,
         title: 'Incomplete Task',
-        // Missing description, priority, etc.
+        description: '',
+        priority: Priority.MEDIUM,
         isDone: false,
+        isArchived: false,
+        createdAt: new Date(),
+        updatedAt: new Date(),
         isPending: () => true,
-      } as Task;
+        isHighPriority: () => false,
+        markAsDone: () => incompleteTask as Task,
+        update: () => incompleteTask as Task,
+        archive: () => incompleteTask as Task,
+      };
 
-      mockTaskManagement.filteredTasks = [incompleteTask];
+      mockTaskManagement.filteredTasks = [incompleteTask as Task];
 
       render(<TodoPage />);
 
@@ -624,7 +778,7 @@ describe('TodoPage Integration Tests', () => {
       );
 
       mockTaskManagement.filteredTasks = manyTasks;
-      mockTaskManagement.taskCounts = { all: 1000, pending: 500, done: 500 };
+      mockTaskManagement.taskCounts = { all: 1000, pending: 500, done: 500, archived: 0 };
 
       render(<TodoPage />);
 

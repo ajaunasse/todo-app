@@ -45,7 +45,7 @@ export const Tag: React.FC<TagProps> = ({
       )}
       <span>{children}</span>
       {deletable && onDelete && (
-        <button className="delete" onClick={onDelete} type="button" />
+        <button className="delete is-small" onClick={onDelete} type="button" />
       )}
     </span>
   );
