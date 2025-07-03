@@ -1,0 +1,117 @@
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-size: 16px; /* Increased base font size */
+  line-height: 1.5;
+}
+
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+    monospace;
+}
+
+/* Global UI Compactness Improvements */
+.columns {
+  margin-left: -0.5rem !important;
+  margin-right: -0.5rem !important;
+  margin-top: -0.5rem !important;
+}
+
+.column {
+  padding: 0.5rem !important;
+}
+
+/* Improved font sizes */
+.title.is-6 {
+  font-size: 1.1rem !important;
+}
+
+.title.is-5 {
+  font-size: 1.25rem !important;
+}
+
+.title.is-4 {
+  font-size: 1.5rem !important;
+}
+
+/* Compact tags */
+.tag {
+  font-size: 0.85rem !important;
+  padding: 0.25em 0.5em !important;
+}
+
+/* Better button spacing */
+.button.is-small {
+  font-size: 0.8rem !important;
+  padding: 0.25rem 0.5rem !important;
+}
+
+/* Compact navbar */
+.navbar-item {
+  padding: 0.5rem 0.75rem !important;
+}
+
+/* Better card spacing */
+.card-content {
+  padding: 1rem !important;
+}
+
+.card-header {
+  padding: 0.75rem 1rem !important;
+}
+
+.card-footer {
+  padding: 0.75rem 1rem !important;
+}
+
+/* Improve modal spacing */
+.modal-card-body {
+  padding: 1rem !important;
+}
+
+.modal-card-head,
+.modal-card-foot {
+  padding: 1rem !important;
+}
+
+/* Compact form fields */
+.field:not(:last-child) {
+  margin-bottom: 0.75rem !important;
+}
+
+.control .input,
+.control .textarea,
+.control .select select {
+  font-size: 1rem !important;
+}
+
+/* Better task list spacing */
+.task-list {
+  gap: 0.5rem;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Improved drop zone */
+.dropzone {
+  padding: 0.5rem !important;
+}
+
+/* Better responsive behavior */
+@media screen and (max-width: 768px) {
+  .column {
+    padding: 0.25rem !important;
+  }
+  
+  .hero-body {
+    padding: 0.75rem !important;
+  }
+  
+  .card {
+    margin-bottom: 0.5rem !important;
+  }
+}
