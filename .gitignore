@@ -119,14 +119,7 @@ dmypy.json
 # Jupyter Notebook
 .ipynb_checkpoints
 
-# pyenv
-.python-version
 
-# pipenv
-Pipfile.lock
-
-# uv
-uv.lock
 
 # Temporary files
 *.tmp

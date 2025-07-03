@@ -3,8 +3,8 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from ...application.commands import ArchiveTaskCommand, CreateTaskCommand, MarkTaskDoneCommand, MarkTaskPendingCommand, ModifyTaskCommand
-from ...application.handlers import (
+from src.application.commands import ArchiveTaskCommand, CreateTaskCommand, MarkTaskDoneCommand, MarkTaskPendingCommand, ModifyTaskCommand
+from src.application.handlers import (
     ArchiveTaskHandler,
     CreateTaskHandler,
     GetAllTasksHandler,
@@ -13,10 +13,10 @@ from ...application.handlers import (
     MarkTaskPendingHandler,
     ModifyTaskHandler,
 )
-from ...application.queries import GetAllTasksQuery, GetTasksByStatusQuery
-from ...infrastructure.database import database
-from ...infrastructure.repositories import SQLiteTaskRepository
-from ..schemas import TaskCreateRequest, TaskResponse, TaskUpdateRequest
+from src.application.queries import GetAllTasksQuery, GetTasksByStatusQuery
+from src.infrastructure.database import database
+from src.infrastructure.repositories import SQLiteTaskRepository
+from src.presentation.schemas import TaskCreateRequest, TaskResponse, TaskUpdateRequest
 
 router = APIRouter(prefix="/tasks", tags=["tasks"])
 

@@ -13,7 +13,9 @@ A full-stack Todo List application built with FastAPI (backend) and React with T
 - ✅ View completed tasks in separate tab/filter
 - ✅ Filter tasks by status (done, not done)
 - ✅ Drag and drop task from pending to done
-- 
+- ✅ Archive completed tasks with success notifications
+- ✅ Edit disabled for completed tasks
+- ✅ Task count statistics (pending, done, archived)
 
 ### Technical Requirements
 - ✅ **Backend**: FastAPI with Clean Architecture and DDD
@@ -145,28 +147,51 @@ make frontend-install     # Install frontend dependencies
 cd backend
 ```
 
-2. Create virtual environment:
+2. Install uv (if not already installed):
 ```bash
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\\Scripts\\activate
+# On macOS/Linux
+curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# On Windows
+powershell -c "irm https://astral.sh/uv/install.ps1 | iex"
+
+# Or with pip
+pip install uv
 ```
 
-3. Install dependencies:
+3. Install dependencies using pyproject.toml:
 ```bash
-uv pip install -r requirements.txt
+uv sync
 ```
 
-4. Run the server:
+4. Activate the virtual environment:
 ```bash
-uvicorn main:app --reload
+source .venv/bin/activate  # On Windows: .venv\\Scripts\\activate
+```
+
+5. Run the server:
+```bash
+uv run uvicorn main:app --reload
+```
+
+**Alternative: Without virtual environment activation**
+```bash
+uv run uvicorn main:app --reload
 ```
 
 #### Development Tools
 
 The backend includes modern Python tooling:
 
-- **uv**: Fast Python package installer
+- **uv**: Fast Python package installer and dependency manager
 - **ruff**: Fast Python linter and formatter
+- **pytest**: Testing framework
+
+Key dependencies are managed in `pyproject.toml`:
+- FastAPI with Uvicorn for the web server
+- SQLAlchemy for database ORM
+- Pydantic for data validation
+- Pytest for testing
 
 Available Makefile commands for backend:
 ```bash
@@ -174,7 +199,7 @@ make backend-dev          # Start local development server
 make backend-test         # Run tests
 make backend-lint         # Lint code
 make backend-format       # Format code
-make backend-install      # Install dependencies
+make backend-install      # Install dependencies using uv sync
 ```
 
 #### Frontend Setup
@@ -219,7 +244,11 @@ make ci-test             # Run tests for CI/CD
 #### Backend Tests
 ```bash
 cd backend
+# With virtual environment activated
 pytest
+
+# Or without activation using uv
+uv run pytest
 ```
 
 #### Frontend Tests
@@ -234,6 +263,8 @@ npm test
 - `POST /tasks/` - Create a new task
 - `PUT /tasks/{task_id}` - Update a task
 - `PATCH /tasks/{task_id}/done` - Mark task as done
+- `PATCH /tasks/{task_id}/pending` - Mark task as pending
+- `PATCH /tasks/{task_id}/archive` - Archive a completed task
 - `GET /tasks/status/{is_done}` - Get tasks by status
 
 ## Architecture Overview
@@ -251,7 +282,7 @@ npm test
 1. **Domain Layer**: Contains business entities and repository interfaces
    - Entities: Task, Priority
    - Repository interfaces: TaskRepository
-   - Use cases: CreateTask, UpdateTask, MarkTaskAsDone, GetTasks, etc.
+   - Use cases: CreateTask, UpdateTask, MarkTaskAsDone, MarkTaskAsPending, ArchiveTask, GetTasks, etc.
 
 2. **Infrastructure Layer**: External concerns and implementations
    - API clients: TaskApiClient
@@ -267,3 +298,40 @@ npm test
    - **Organisms**: Complex components (TaskList, Header)
    - **Pages**: Complete page layouts
    - **Hooks**: Custom hooks for business logic (useTaskManagement)
+
+## Archive Functionality
+
+The application includes a comprehensive task archiving system:
+
+### Features
+- **Archive Completed Tasks**: Only completed (done) tasks can be archived
+- **Smart UI Controls**: 
+  - Archive button appears only for completed tasks
+  - Edit button is disabled for completed tasks
+  - Archive button positioned in the top-right with appropriate icon
+- **Success Notifications**: 
+  - Toast notification shows when task is archived successfully
+  - Notification includes task title and auto-hides after 3 seconds
+  - Manual dismiss option available
+- **Task Filtering**: 
+  - Archived tasks are hidden from both pending and done columns
+  - Task counts exclude archived tasks from active counts
+  - Separate archived count displayed in header statistics
+- **Data Integrity**: 
+  - Backend validation ensures only completed tasks can be archived
+  - Proper error handling for invalid archive attempts
+  - Clean architecture maintained across all layers
+
+### Technical Implementation
+- **Backend**: Archive command with domain validation
+- **Frontend**: React state management with success notifications
+- **Database**: SQLite with `is_archived` boolean field
+- **Testing**: Comprehensive test coverage for all archive scenarios
+
+### Usage
+1. Complete a task by dragging to "Done" column or clicking done
+2. Click the archive button (📦 icon) that appears for completed tasks
+3. View success notification confirming the task was archived
+4. Archived tasks are hidden from view but counted in statistics
+
+This feature maintains the clean architecture principles while providing a polished user experience for task lifecycle management.

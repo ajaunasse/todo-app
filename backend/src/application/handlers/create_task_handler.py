@@ -1,6 +1,6 @@
-from ...domain.entities import Priority, Task
-from ...domain.repositories import TaskRepository
-from ..commands import CreateTaskCommand
+from src.domain.entities import Priority, Task
+from src.domain.repositories import TaskRepository
+from src.application.commands import CreateTaskCommand
 
 
 class CreateTaskHandler:

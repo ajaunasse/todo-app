@@ -1,6 +1,6 @@
-from ...domain.entities import Task
-from ...domain.repositories import TaskRepository
-from ..commands import MarkTaskPendingCommand
+from src.domain.entities import Task
+from src.domain.repositories import TaskRepository
+from src.application.commands import MarkTaskPendingCommand
 
 
 class MarkTaskPendingHandler:

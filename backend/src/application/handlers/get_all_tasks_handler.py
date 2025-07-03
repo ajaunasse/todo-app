@@ -1,7 +1,7 @@
 
-from ...domain.entities import Task
-from ...domain.repositories import TaskRepository
-from ..queries import GetAllTasksQuery
+from src.domain.entities import Task
+from src.domain.repositories import TaskRepository
+from src.application.queries import GetAllTasksQuery
 
 
 class GetAllTasksHandler:

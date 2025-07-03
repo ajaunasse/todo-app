@@ -4,9 +4,9 @@ from uuid import UUID
 from sqlalchemy import case, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from ...domain.entities import Priority, Task
-from ...domain.repositories import TaskRepository
-from ..database.models import TaskModel
+from src.domain.entities import Priority, Task
+from src.domain.repositories import TaskRepository
+from src.infrastructure.database.models import TaskModel
 
 
 class SQLiteTaskRepository(TaskRepository):
