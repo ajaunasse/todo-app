@@ -19,6 +19,10 @@ class ModifyTaskHandler:
                     "Cannot modify task to high priority. Maximum of 5 high priority tasks allowed"
                 )
 
-        task.update(title=command.title, description=command.description, priority=command.priority)
+        task.update(
+            title=command.title,
+            description=command.description,
+            priority=command.priority,
+        )
 
         return await self.repository.update(task)

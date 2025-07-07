@@ -78,7 +78,7 @@ todo-app/
 
 1. Clone the repository:
 ```bash
-git clone <repository-url>
+git clone git@github.com:ajaunasse/todo-app.git
 cd todo-app
 ```
 

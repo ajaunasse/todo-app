@@ -4,4 +4,10 @@ from .mark_task_done_command import MarkTaskDoneCommand
 from .mark_task_pending_command import MarkTaskPendingCommand
 from .modify_task_command import ModifyTaskCommand
 
-__all__ = ["CreateTaskCommand", "ModifyTaskCommand", "MarkTaskDoneCommand", "MarkTaskPendingCommand", "ArchiveTaskCommand"]
+__all__ = [
+    "CreateTaskCommand",
+    "ModifyTaskCommand",
+    "MarkTaskDoneCommand",
+    "MarkTaskPendingCommand",
+    "ArchiveTaskCommand",
+]

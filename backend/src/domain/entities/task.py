@@ -19,8 +19,8 @@ class Task:
     priority: Priority
     is_done: bool = False
     is_archived: bool = False
-    created_at: Optional[datetime] = None,
-    updated_at: Optional[datetime] = None,
+    created_at: Optional[datetime] = (None,)
+    updated_at: Optional[datetime] = (None,)
 
     def __post_init__(self):
         if self.created_at is None:

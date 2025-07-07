@@ -1,4 +1,3 @@
-
 from src.domain.entities import Task
 from src.domain.repositories import TaskRepository
 from src.application.queries import GetTasksByStatusQuery

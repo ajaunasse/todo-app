@@ -3,7 +3,13 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.application.commands import ArchiveTaskCommand, CreateTaskCommand, MarkTaskDoneCommand, MarkTaskPendingCommand, ModifyTaskCommand
+from src.application.commands import (
+    ArchiveTaskCommand,
+    CreateTaskCommand,
+    MarkTaskDoneCommand,
+    MarkTaskPendingCommand,
+    ModifyTaskCommand,
+)
 from src.application.handlers import (
     ArchiveTaskHandler,
     CreateTaskHandler,
@@ -27,12 +33,16 @@ async def get_db_session():
 
 
 @router.post("/", response_model=TaskResponse, status_code=status.HTTP_201_CREATED)
-async def create_task(task_data: TaskCreateRequest, db: AsyncSession = Depends(get_db_session)):
+async def create_task(
+    task_data: TaskCreateRequest, db: AsyncSession = Depends(get_db_session)
+):
     try:
         repository = SQLiteTaskRepository(db)
         handler = CreateTaskHandler(repository)
         command = CreateTaskCommand(
-            title=task_data.title, description=task_data.description, priority=task_data.priority
+            title=task_data.title,
+            description=task_data.description,
+            priority=task_data.priority,
         )
         task = await handler.handle(command)
         return TaskResponse(
@@ -71,10 +81,12 @@ async def get_all_tasks(db: AsyncSession = Depends(get_db_session)):
 
 
 @router.get("/status/{is_done}", response_model=list[TaskResponse])
-async def get_tasks_by_status(is_done: bool, db: AsyncSession = Depends(get_db_session)):
+async def get_tasks_by_status(
+    is_done: bool, db: AsyncSession = Depends(get_db_session)
+):
     repository = SQLiteTaskRepository(db)
     handler = GetTasksByStatusHandler(repository)
-    query = GetTasksByStatusQuery(is_done=is_done, is_archived=false)
+    query = GetTasksByStatusQuery(is_done=is_done, is_archived=False)
     tasks = await handler.handle(query)
     return [
         TaskResponse(
@@ -93,7 +105,9 @@ async def get_tasks_by_status(is_done: bool, db: AsyncSession = Depends(get_db_s
 
 @router.put("/{task_id}", response_model=TaskResponse)
 async def update_task(
-    task_id: UUID, task_data: TaskUpdateRequest, db: AsyncSession = Depends(get_db_session)
+    task_id: UUID,
+    task_data: TaskUpdateRequest,
+    db: AsyncSession = Depends(get_db_session),
 ):
     try:
         repository = SQLiteTaskRepository(db)

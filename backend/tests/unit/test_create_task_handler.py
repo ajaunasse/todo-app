@@ -39,7 +39,9 @@ class TestCreateTaskHandler:
             title="Test Task", description="Test Description", priority=Priority.HIGH
         )
 
-        with pytest.raises(ValueError, match="Cannot create more than 5 tasks with high priority"):
+        with pytest.raises(
+            ValueError, match="Cannot create more than 5 tasks with high priority"
+        ):
             await handler.handle(command)
 
         mock_repository.count_by_priority.assert_called_once_with(Priority.HIGH)

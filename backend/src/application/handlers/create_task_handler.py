@@ -14,7 +14,9 @@ class CreateTaskHandler:
                 raise ValueError("Cannot create more than 5 tasks with high priority")
 
         task = Task.create(
-            title=command.title, description=command.description, priority=command.priority
+            title=command.title,
+            description=command.description,
+            priority=command.priority,
         )
 
         return await self.repository.create(task)

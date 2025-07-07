@@ -9,16 +9,22 @@ from ...domain.entities import Priority
 
 class TaskCreateRequest(BaseModel):
     title: str = Field(..., min_length=1, max_length=255, description="Task title")
-    description: str = Field(..., min_length=1, max_length=1000, description="Task description")
+    description: str = Field(
+        ..., min_length=1, max_length=1000, description="Task description"
+    )
     priority: Priority = Field(..., description="Task priority (low, medium, high)")
 
 
 class TaskUpdateRequest(BaseModel):
-    title: Optional[str] = Field(None, min_length=1, max_length=255, description="Task title")
+    title: Optional[str] = Field(
+        None, min_length=1, max_length=255, description="Task title"
+    )
     description: Optional[str] = Field(
         None, min_length=1, max_length=1000, description="Task description"
     )
-    priority: Optional[Priority] = Field(None, description="Task priority (low, medium, high)")
+    priority: Optional[Priority] = Field(
+        None, description="Task priority (low, medium, high)"
+    )
 
 
 class TaskResponse(BaseModel):
@@ -31,9 +37,7 @@ class TaskResponse(BaseModel):
     created_at: datetime
     updated_at: datetime
 
-    model_config = ConfigDict(
-        from_attributes=True
-    )
+    model_config = ConfigDict(from_attributes=True)
 
 
 class ErrorResponse(BaseModel):

@@ -14,7 +14,9 @@ test_engine = create_async_engine(
     connect_args={"check_same_thread": False},
     poolclass=StaticPool,
 )
-TestingSessionLocal = async_sessionmaker(autocommit=False, autoflush=False, bind=test_engine)
+TestingSessionLocal = async_sessionmaker(
+    autocommit=False, autoflush=False, bind=test_engine
+)
 
 
 async def override_get_db():
@@ -37,10 +39,16 @@ async def setup_database():
 @pytest.mark.asyncio
 class TestTaskAPI:
     async def test_create_task(self, setup_database):
-        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+        async with AsyncClient(
+            transport=ASGITransport(app=app), base_url="http://test"
+        ) as client:
             response = await client.post(
                 "/tasks/",
-                json={"title": "Test Task", "description": "Test Description", "priority": "high"},
+                json={
+                    "title": "Test Task",
+                    "description": "Test Description",
+                    "priority": "high",
+                },
             )
 
             assert response.status_code == 201
@@ -51,14 +59,24 @@ class TestTaskAPI:
             assert data["is_done"] is False
 
     async def test_get_all_tasks(self, setup_database):
-        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+        async with AsyncClient(
+            transport=ASGITransport(app=app), base_url="http://test"
+        ) as client:
             await client.post(
                 "/tasks/",
-                json={"title": "Task 1", "description": "Description 1", "priority": "high"},
+                json={
+                    "title": "Task 1",
+                    "description": "Description 1",
+                    "priority": "high",
+                },
             )
             await client.post(
                 "/tasks/",
-                json={"title": "Task 2", "description": "Description 2", "priority": "low"},
+                json={
+                    "title": "Task 2",
+                    "description": "Description 2",
+                    "priority": "low",
+                },
             )
 
             response = await client.get("/tasks/")
@@ -68,13 +86,15 @@ class TestTaskAPI:
             assert len(data) == 2
 
     async def test_high_priority_limit(self, setup_database):
-        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+        async with AsyncClient(
+            transport=ASGITransport(app=app), base_url="http://test"
+        ) as client:
             for i in range(5):
                 response = await client.post(
                     "/tasks/",
                     json={
-                        "title": f"High Priority Task {i+1}",
-                        "description": f"Description {i+1}",
+                        "title": f"High Priority Task {i + 1}",
+                        "description": f"Description {i + 1}",
                         "priority": "high",
                     },
                 )
@@ -90,4 +110,7 @@ class TestTaskAPI:
             )
 
             assert response.status_code == 400
-            assert "Cannot create more than 5 tasks with high priority" in response.json()["detail"]
+            assert (
+                "Cannot create more than 5 tasks with high priority"
+                in response.json()["detail"]
+            )

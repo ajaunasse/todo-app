@@ -45,7 +45,9 @@ class SQLiteTaskRepository(TaskRepository):
         return self._to_entity(model)
 
     async def get_by_id(self, task_id: UUID) -> Optional[Task]:
-        result = await self.session.execute(select(TaskModel).where(TaskModel.id == str(task_id)))
+        result = await self.session.execute(
+            select(TaskModel).where(TaskModel.id == str(task_id))
+        )
         model = result.scalar_one_or_none()
         return self._to_entity(model) if model else None
 
@@ -54,10 +56,12 @@ class SQLiteTaskRepository(TaskRepository):
             (TaskModel.priority == Priority.HIGH, 3),
             (TaskModel.priority == Priority.MEDIUM, 2),
             (TaskModel.priority == Priority.LOW, 1),
-            else_=0
+            else_=0,
         )
         result = await self.session.execute(
-            select(TaskModel).order_by(priority_order.desc(), TaskModel.created_at.desc())
+            select(TaskModel).order_by(
+                priority_order.desc(), TaskModel.created_at.desc()
+            )
         )
         models = result.scalars().all()
         return [self._to_entity(model) for model in models]
@@ -67,7 +71,7 @@ class SQLiteTaskRepository(TaskRepository):
             (TaskModel.priority == Priority.HIGH, 3),
             (TaskModel.priority == Priority.MEDIUM, 2),
             (TaskModel.priority == Priority.LOW, 1),
-            else_=0
+            else_=0,
         )
         result = await self.session.execute(
             select(TaskModel)
@@ -79,7 +83,9 @@ class SQLiteTaskRepository(TaskRepository):
         return [self._to_entity(model) for model in models]
 
     async def update(self, task: Task) -> Task:
-        result = await self.session.execute(select(TaskModel).where(TaskModel.id == str(task.id)))
+        result = await self.session.execute(
+            select(TaskModel).where(TaskModel.id == str(task.id))
+        )
         model = result.scalar_one_or_none()
         if not model:
             raise ValueError(f"Task with id {task.id} not found")
@@ -96,7 +102,9 @@ class SQLiteTaskRepository(TaskRepository):
         return self._to_entity(model)
 
     async def delete(self, task_id: UUID) -> bool:
-        result = await self.session.execute(select(TaskModel).where(TaskModel.id == str(task_id)))
+        result = await self.session.execute(
+            select(TaskModel).where(TaskModel.id == str(task_id))
+        )
         model = result.scalar_one_or_none()
         if not model:
             return False
@@ -109,6 +117,6 @@ class SQLiteTaskRepository(TaskRepository):
         result = await self.session.execute(
             select(func.count(TaskModel.id))
             .where(TaskModel.priority == priority)
-            .where(TaskModel.is_done == False)
+            .where(TaskModel.is_done.is_(False))
         )
         return result.scalar() or 0
